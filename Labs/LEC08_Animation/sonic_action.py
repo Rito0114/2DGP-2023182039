@@ -79,10 +79,22 @@ SCALE = 6
 
 WIDTH, HEIGHT = 800, 400
 
+# TUK_GROUND.png is 1280x1024 (aspect 1.25) but the canvas is 800x400 (2.0),
+# so it does not fit 1:1. 'cover' scales it up until it fills the canvas and
+# crops the overflow evenly top and bottom, which keeps the art undistorted.
+# 'fit' shows the whole image but leaves bars. Do not stretch to 800x400
+# directly - that squashes it vertically by 38%.
+BG_MODE = 'cover'
+
 open_canvas(WIDTH, HEIGHT)
 
 sheet = load_image('sonic-sprite.png')
+bg = load_image('TUK_GROUND.png')
 font = load_font(os.path.join(os.path.dirname(pico2d.__file__), 'data', 'ConsolaMalgun.ttf'), 20)
+
+BG_SCALE = max(WIDTH / bg.w, HEIGHT / bg.h) if BG_MODE == 'cover' \
+    else min(WIDTH / bg.w, HEIGHT / bg.h)
+BG_W, BG_H = bg.w * BG_SCALE, bg.h * BG_SCALE
 
 frame_time = 1.0 / FPS
 state = {'action': 0, 'frame': 0, 'cycles': 0, 'elapsed': 0.0}
@@ -140,6 +152,9 @@ while running:
     cy = HEIGHT // 2
 
     clear_canvas()
+    # draw() takes the centre too (pico2d.py:340-345), so the background goes
+    # through the same centre-based path as the sprite.
+    bg.draw(WIDTH // 2, HEIGHT // 2, BG_W, BG_H)
     sheet.clip_draw(left, bottom, fw, fh, cx, cy, dw, dh)
 
     cycle = min(state['cycles'] + 1, CYCLES_PER_ACTION)
