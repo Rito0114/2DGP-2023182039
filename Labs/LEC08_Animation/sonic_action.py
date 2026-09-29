@@ -75,6 +75,7 @@ ACTIONS = {
 SEQUENCE = ['walk', 'dash', 'kick', 'turn']
 CYCLES_PER_ACTION = 5
 FPS = 12
+SCALE = 2
 
 WIDTH, HEIGHT = 800, 400
 
@@ -126,9 +127,20 @@ while running:
 
     left, bottom, fw, fh = frames[state['frame']]
 
+    # clip_draw's x, y are the CENTRE of the dest rect (pico2d.py:361), and the
+    # w, h args set the dest size, so SCALE just multiplies those. The source
+    # rect stays in sheet pixels, so no re-encoded texture is needed. pico2d
+    # never calls SDL_SetTextureScaleMode, so SDL2's default nearest-neighbour
+    # applies and the 2x stays crisp instead of blurring.
+    dw, dh = fw * SCALE, fh * SCALE
+
+    # Anchor: keep the sprite's right edge on WIDTH/2 and its bottom edge on
+    # HEIGHT/2, which is where SCALE=1 put it. So it grows left/up in place.
+    cx = WIDTH // 2 - dw // 2
+    cy = HEIGHT // 2 - dh // 2
+
     clear_canvas()
-    sheet.clip_draw(left, bottom, fw, fh,
-                    (WIDTH - fw) // 2, (HEIGHT - fh) // 2)
+    sheet.clip_draw(left, bottom, fw, fh, cx, cy, dw, dh)
 
     cycle = min(state['cycles'] + 1, CYCLES_PER_ACTION)
     font.draw(150, 370, '%s  frame %d/%d  cycle %d/%d'
