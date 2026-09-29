@@ -8,10 +8,6 @@ import sdl2
 # sonic-sprite.png is 399x525 with no uniform grid, so frame rects were
 # measured by scanning transparent gaps. Each frame is (left, bottom, w, h).
 # `bottom` is the offset from the BOTTOM edge of the sheet (pico2d coordinate).
-#
-# run and spin are one continuous animation: the last run frames are Sonic
-# curling up, and spin continues the curl into a ball. The sprite sheet even
-# stores them adjacently (run at y=167..199, spin right below at y=206..232).
 WALK = [
     (0, 251, 37, 36),
     (36, 251, 37, 36),
@@ -73,7 +69,7 @@ ACTIONS = {
     'spin': SPIN,
     'kick': KICK,
     'turn': TURN,
-    'dash': RUN + SPIN,
+    'dash': SPIN,
 }
 
 SEQUENCE = ['walk', 'dash', 'kick', 'turn']
