@@ -42,14 +42,26 @@ SPIN = [
     (173, 292, 35, 27),
 ]
 
+# kick: the leg swings from a low diagonal out to fully horizontal, so the
+# shoe (red pixels) grows into a wide bar across frames 3-4.
+KICK = [
+    (1, 361, 35, 43),
+    (39, 361, 35, 43),
+    (89, 361, 35, 43),
+    (130, 361, 35, 43),
+    (181, 361, 35, 43),
+    (228, 361, 35, 43),
+]
+
 ACTIONS = {
     'walk': WALK,
     'run': RUN,
     'spin': SPIN,
+    'kick': KICK,
     'dash': RUN + SPIN,
 }
 
-SEQUENCE = ['walk', 'dash']
+SEQUENCE = ['walk', 'dash', 'kick']
 CYCLES_PER_ACTION = 5
 FPS = 12
 
