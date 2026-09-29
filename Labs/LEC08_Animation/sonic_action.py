@@ -79,18 +79,17 @@ SCALE = 6
 
 WIDTH, HEIGHT = 800, 400
 
-# TUK_GROUND.png is 1280x1024 (aspect 1.25) but the canvas is 800x400 (2.0),
-# so it does not fit 1:1. 'fit' scales it down until the whole image is inside
-# the canvas, leaving letterbox bars left and right (500x400 here, the canvas
-# is 1.6x wider). 'cover' instead fills the canvas and crops the overflow
-# evenly top and bottom. Neither distorts it - stretching to 800x400 directly
-# would squash the art vertically by 38%.
+# sonic_background.png is 800x400, exactly the canvas size and aspect ratio, so
+# at BG_MODE='cover' the scale factor is 1.0 and it draws 1:1 with no crop and
+# no resampling blur. The mode still applies in case a different image is loaded:
+# 'fit' scales down until the whole image fits inside the canvas, 'cover' scales
+# up until it fills the canvas and crops the overflow evenly.
 BG_MODE = 'cover'
 
 open_canvas(WIDTH, HEIGHT)
 
 sheet = load_image('sonic-sprite.png')
-bg = load_image('TUK_GROUND.png')
+bg = load_image('sonic_background.png')
 font = load_font(os.path.join(os.path.dirname(pico2d.__file__), 'data', 'ConsolaMalgun.ttf'), 20)
 
 BG_SCALE = max(WIDTH / bg.w, HEIGHT / bg.h) if BG_MODE == 'cover' \
