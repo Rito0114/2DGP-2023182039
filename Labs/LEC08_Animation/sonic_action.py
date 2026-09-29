@@ -134,10 +134,10 @@ while running:
     # applies and the 2x stays crisp instead of blurring.
     dw, dh = fw * SCALE, fh * SCALE
 
-    # Anchor: keep the sprite's right edge on WIDTH/2 and its bottom edge on
-    # HEIGHT/2, which is where SCALE=1 put it. So it grows left/up in place.
-    cx = WIDTH // 2 - dw // 2
-    cy = HEIGHT // 2 - dh // 2
+    # True centre on both axes: left = cx-dw/2, right = cx+dw/2, and the same
+    # for top/bottom, so the sprite is centred regardless of fw/fh.
+    cx = WIDTH // 2
+    cy = HEIGHT // 2
 
     clear_canvas()
     sheet.clip_draw(left, bottom, fw, fh, cx, cy, dw, dh)
