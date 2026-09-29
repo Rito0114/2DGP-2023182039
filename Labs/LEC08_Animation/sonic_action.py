@@ -80,11 +80,12 @@ SCALE = 6
 WIDTH, HEIGHT = 800, 400
 
 # TUK_GROUND.png is 1280x1024 (aspect 1.25) but the canvas is 800x400 (2.0),
-# so it does not fit 1:1. 'cover' scales it up until it fills the canvas and
-# crops the overflow evenly top and bottom, which keeps the art undistorted.
-# 'fit' shows the whole image but leaves bars. Do not stretch to 800x400
-# directly - that squashes it vertically by 38%.
-BG_MODE = 'cover'
+# so it does not fit 1:1. 'fit' scales it down until the whole image is inside
+# the canvas, leaving letterbox bars left and right (500x400 here, the canvas
+# is 1.6x wider). 'cover' instead fills the canvas and crops the overflow
+# evenly top and bottom. Neither distorts it - stretching to 800x400 directly
+# would squash the art vertically by 38%.
+BG_MODE = 'fit'
 
 open_canvas(WIDTH, HEIGHT)
 
