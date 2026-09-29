@@ -75,7 +75,7 @@ ACTIONS = {
 SEQUENCE = ['walk', 'dash', 'kick', 'turn']
 CYCLES_PER_ACTION = 5
 FPS = 12
-SCALE = 2
+SCALE = 4
 
 WIDTH, HEIGHT = 800, 400
 
