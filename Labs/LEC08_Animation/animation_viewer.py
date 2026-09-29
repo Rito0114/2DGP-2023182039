@@ -75,7 +75,10 @@ ACTIONS = {
 SEQUENCE = ['walk', 'dash', 'kick', 'turn']
 CYCLES_PER_ACTION = 5
 FPS = 12
-SCALE = 6
+# Fractional scales work because dest w/h are just multiplied, but a non-integer
+# factor makes SDL_RenderCopy resample the sprite and the pixel art loses its
+# hard edges. An integer factor keeps it nearest-neighbour and crisp.
+SCALE = 5
 
 WIDTH, HEIGHT = 800, 400
 
