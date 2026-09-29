@@ -92,6 +92,14 @@ sheet = load_image('sonic-sprite.png')
 bg = load_image('sonic_background.png')
 font = load_font(os.path.join(os.path.dirname(pico2d.__file__), 'data', 'ConsolaMalgun.ttf'), 20)
 
+# pico2d's Font.draw renders with TTF_RenderUTF8_Blended and exposes no style
+# control, but the raw TTF_Font handle is kept on Font.font, so bold is just a
+# call to SDL_ttf. This thickens the glyph outlines rather than scaling the
+# texture, so the text stays crisp at any size.
+TTF_SetFontStyle(font.font, TTF_STYLE_BOLD)
+
+TEXT_COLOR = (255, 255, 255)
+
 BG_SCALE = max(WIDTH / bg.w, HEIGHT / bg.h) if BG_MODE == 'cover' \
     else min(WIDTH / bg.w, HEIGHT / bg.h)
 BG_W, BG_H = bg.w * BG_SCALE, bg.h * BG_SCALE
@@ -178,8 +186,8 @@ while running:
     else:
         status = '%s  frame %d/%d  cycle %d/%d' % (
             name, state['frame'] + 1, len(frames), cycle, CYCLES_PER_ACTION)
-    font.draw(150, 370, status, (0, 0, 0))
-    font.draw(150, 350, 'SPACE: next action    ESC: quit', (0, 0, 0))
+    font.draw(150, 370, status, TEXT_COLOR)
+    font.draw(150, 350, 'SPACE: next action    ESC: quit', TEXT_COLOR)
     update_canvas()
     delay(1.0 / 60.0)
 
