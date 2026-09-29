@@ -85,7 +85,7 @@ WIDTH, HEIGHT = 800, 400
 # is 1.6x wider). 'cover' instead fills the canvas and crops the overflow
 # evenly top and bottom. Neither distorts it - stretching to 800x400 directly
 # would squash the art vertically by 38%.
-BG_MODE = 'fit'
+BG_MODE = 'cover'
 
 open_canvas(WIDTH, HEIGHT)
 
