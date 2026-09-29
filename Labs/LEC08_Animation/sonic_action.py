@@ -6,15 +6,50 @@ import pico2d
 import sdl2
 
 # sonic-sprite.png is 399x525 with no uniform grid, so frame rects were
-# measured by scanning transparent gaps: (lefts, width, height, bottom)
+# measured by scanning transparent gaps. Each frame is (left, bottom, w, h).
 # `bottom` is the offset from the BOTTOM edge of the sheet (pico2d coordinate).
+#
+# run and spin are one continuous animation: the last run frames are Sonic
+# curling up, and spin continues the curl into a ball. The sprite sheet even
+# stores them adjacently (run at y=167..199, spin right below at y=206..232).
+WALK = [
+    (0, 251, 37, 36),
+    (36, 251, 37, 36),
+    (74, 251, 37, 36),
+    (111, 251, 37, 36),
+    (148, 251, 37, 36),
+    (185, 251, 37, 36),
+]
+
+RUN = [
+    (1, 325, 31, 33),
+    (35, 325, 31, 33),
+    (67, 325, 31, 33),
+    (98, 325, 31, 33),
+    (131, 325, 31, 33),
+    (162, 325, 31, 33),
+    (193, 325, 31, 33),
+    (230, 325, 31, 33),
+    (268, 325, 31, 33),
+]
+
+SPIN = [
+    (0, 292, 35, 27),
+    (35, 292, 35, 27),
+    (69, 292, 35, 27),
+    (104, 292, 35, 27),
+    (138, 292, 35, 27),
+    (173, 292, 35, 27),
+]
+
 ACTIONS = {
-    'spin': ([0, 35, 69, 104, 138, 173], 35, 27, 292),
-    'walk': ([0, 36, 74, 111, 148, 185], 37, 36, 251),
-    'run': ([1, 35, 67, 98, 131, 162, 193, 230, 268], 31, 33, 325),
+    'walk': WALK,
+    'run': RUN,
+    'spin': SPIN,
+    'dash': RUN + SPIN,
 }
 
-SEQUENCE = ['walk', 'run', 'spin']
+SEQUENCE = ['walk', 'dash']
 CYCLES_PER_ACTION = 5
 FPS = 12
 
@@ -52,27 +87,29 @@ while running:
                 advance()
 
     name = current()
-    lefts, fw, fh, bottom = ACTIONS[name]
+    frames = ACTIONS[name]
 
     state['elapsed'] += 1.0 / 60.0
     while state['elapsed'] >= frame_time:
         state['elapsed'] -= frame_time
         state['frame'] += 1
-        if state['frame'] >= len(lefts):
+        if state['frame'] >= len(frames):
             state['frame'] = 0
             state['cycles'] += 1
             if state['cycles'] >= CYCLES_PER_ACTION:
                 advance()
                 name = current()
-                lefts, fw, fh, bottom = ACTIONS[name]
+                frames = ACTIONS[name]
+
+    left, bottom, fw, fh = frames[state['frame']]
 
     clear_canvas()
-    sheet.clip_draw(lefts[state['frame']], bottom, fw, fh,
+    sheet.clip_draw(left, bottom, fw, fh,
                     (WIDTH - fw) // 2, (HEIGHT - fh) // 2)
 
     cycle = min(state['cycles'] + 1, CYCLES_PER_ACTION)
     font.draw(150, 370, '%s  frame %d/%d  cycle %d/%d'
-              % (name, state['frame'] + 1, len(lefts), cycle, CYCLES_PER_ACTION), (0, 0, 0))
+              % (name, state['frame'] + 1, len(frames), cycle, CYCLES_PER_ACTION), (0, 0, 0))
     font.draw(150, 350, 'SPACE: next action    ESC: quit', (0, 0, 0))
     update_canvas()
     delay(1.0 / 60.0)
