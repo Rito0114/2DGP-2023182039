@@ -97,7 +97,12 @@ BG_SCALE = max(WIDTH / bg.w, HEIGHT / bg.h) if BG_MODE == 'cover' \
 BG_W, BG_H = bg.w * BG_SCALE, bg.h * BG_SCALE
 
 frame_time = 1.0 / FPS
-state = {'action': 0, 'frame': 0, 'cycles': 0, 'elapsed': 0.0}
+# Pause between actions: once an action finishes its cycles, its last frame is
+# held on screen for HOLD_SECONDS before moving on. This is separate from the
+# frame timer, so the hold does not eat into the next action's cycle count.
+HOLD_SECONDS = 1.0
+
+state = {'action': 0, 'frame': 0, 'cycles': 0, 'elapsed': 0.0, 'hold': 0.0}
 
 
 def current():
@@ -108,6 +113,7 @@ def advance():
     state['action'] = (state['action'] + 1) % len(SEQUENCE)
     state['frame'] = 0
     state['cycles'] = 0
+    state['hold'] = 0.0
 
 
 running = True
@@ -125,17 +131,26 @@ while running:
     name = current()
     frames = ACTIONS[name]
 
-    state['elapsed'] += 1.0 / 60.0
-    while state['elapsed'] >= frame_time:
-        state['elapsed'] -= frame_time
-        state['frame'] += 1
-        if state['frame'] >= len(frames):
-            state['frame'] = 0
-            state['cycles'] += 1
-            if state['cycles'] >= CYCLES_PER_ACTION:
-                advance()
-                name = current()
-                frames = ACTIONS[name]
+    if state['hold'] > 0.0:
+        state['hold'] -= 1.0 / 60.0
+        if state['hold'] <= 0.0:
+            state['hold'] = 0.0
+            advance()
+            name = current()
+            frames = ACTIONS[name]
+    else:
+        state['elapsed'] += 1.0 / 60.0
+        while state['elapsed'] >= frame_time:
+            state['elapsed'] -= frame_time
+            state['frame'] += 1
+            if state['frame'] >= len(frames):
+                state['frame'] = 0
+                state['cycles'] += 1
+                if state['cycles'] >= CYCLES_PER_ACTION:
+                    # Freeze on the last frame for HOLD_SECONDS.
+                    state['frame'] = len(frames) - 1
+                    state['hold'] = HOLD_SECONDS
+                    break
 
     left, bottom, fw, fh = frames[state['frame']]
 
@@ -158,8 +173,12 @@ while running:
     sheet.clip_draw(left, bottom, fw, fh, cx, cy, dw, dh)
 
     cycle = min(state['cycles'] + 1, CYCLES_PER_ACTION)
-    font.draw(150, 370, '%s  frame %d/%d  cycle %d/%d'
-              % (name, state['frame'] + 1, len(frames), cycle, CYCLES_PER_ACTION), (0, 0, 0))
+    if state['hold'] > 0.0:
+        status = '%s  hold %.1fs' % (name, state['hold'])
+    else:
+        status = '%s  frame %d/%d  cycle %d/%d' % (
+            name, state['frame'] + 1, len(frames), cycle, CYCLES_PER_ACTION)
+    font.draw(150, 370, status, (0, 0, 0))
     font.draw(150, 350, 'SPACE: next action    ESC: quit', (0, 0, 0))
     update_canvas()
     delay(1.0 / 60.0)
