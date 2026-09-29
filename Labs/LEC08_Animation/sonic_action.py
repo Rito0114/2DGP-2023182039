@@ -99,6 +99,11 @@ font = load_font(os.path.join(os.path.dirname(pico2d.__file__), 'data', 'Consola
 TTF_SetFontStyle(font.font, TTF_STYLE_BOLD)
 
 TEXT_COLOR = (255, 255, 255)
+# Font.draw is centre-based vertically (see the draw call below), so TEXT_Y is
+# the middle of the status line. At size 20 the glyph box is 20px tall, so a
+# centre of 20 puts the top edge at 10 and leaves 10px of margin.
+TEXT_X, TEXT_Y = 20, 20
+TEXT_LINE_GAP = 30
 
 BG_SCALE = max(WIDTH / bg.w, HEIGHT / bg.h) if BG_MODE == 'cover' \
     else min(WIDTH / bg.w, HEIGHT / bg.h)
@@ -186,8 +191,13 @@ while running:
     else:
         status = '%s  frame %d/%d  cycle %d/%d' % (
             name, state['frame'] + 1, len(frames), cycle, CYCLES_PER_ACTION)
-    font.draw(150, 370, status, TEXT_COLOR)
-    font.draw(150, 350, 'SPACE: next action    ESC: quit', TEXT_COLOR)
+    # Font.draw is centre-based on both axes, like Image.draw: it calls
+    # image.draw(x + w/2, y), and Image.draw then subtracts w/2 and h/2. The x
+    # halves cancel so x acts like a left edge, but y stays a true centre, so the
+    # text spans y-h/2 .. y+h/2. TEXT_Y is therefore the centre of the first
+    # line; the help line sits TEXT_LINE_GAP below it.
+    font.draw(TEXT_X, TEXT_Y, status, TEXT_COLOR)
+    font.draw(TEXT_X, TEXT_Y + TEXT_LINE_GAP, 'SPACE: next action    ESC: quit', TEXT_COLOR)
     update_canvas()
     delay(1.0 / 60.0)
 
