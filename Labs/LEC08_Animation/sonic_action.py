@@ -53,15 +53,30 @@ KICK = [
     (228, 361, 35, 43),
 ]
 
+# turn: widths differ per frame (27..33) and frame 0 sits only 3px from frame
+# 1, so a uniform width would clip into the neighbour - keep each frame's own
+# tight crop. Every frame is centred by its own width, so nothing jitters.
+TURN = [
+    (1, 108, 27, 40),
+    (31, 108, 31, 40),
+    (64, 108, 31, 40),
+    (99, 108, 33, 40),
+    (136, 108, 32, 40),
+    (176, 108, 33, 40),
+    (217, 108, 33, 40),
+    (254, 108, 33, 40),
+]
+
 ACTIONS = {
     'walk': WALK,
     'run': RUN,
     'spin': SPIN,
     'kick': KICK,
+    'turn': TURN,
     'dash': RUN + SPIN,
 }
 
-SEQUENCE = ['walk', 'dash', 'kick']
+SEQUENCE = ['walk', 'dash', 'kick', 'turn']
 CYCLES_PER_ACTION = 5
 FPS = 12
 
