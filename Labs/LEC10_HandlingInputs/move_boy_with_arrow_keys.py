@@ -9,8 +9,8 @@
     python move_boy_with_arrow_keys.py
 
 사용 이미지 (같은 폴더에 있음)
+    TUK_GROUND.png    : 배경 (1280x1024, 캔버스 크기와 동일)
     run_animation.png : 달리기 스프라이트 시트 (가로 8칸 x 세로 1줄, 한 프레임 100x100)
-    grass.png         : 바닥
 """
 import math
 import os
@@ -22,8 +22,8 @@ import pico2d
 #  설정값 - 여기만 고치면 됩니다
 # ==========================================================
 SPRITE_FILE = 'run_animation.png'   # 스프라이트 시트 파일 이름
-GRASS_FILE = 'grass.png'            # 바닥 이미지 (없어도 동작)
-CANVAS_W, CANVAS_H = 800, 600      # 화면(캔버스) 크기
+GROUND_FILE = 'TUK_GROUND.png'      # 배경 이미지 (1280x1024, 없으면 바닥 선으로 대체)
+CANVAS_W, CANVAS_H = 1280, 1024    # 화면(캔버스) 크기 - TUK_GROUND.png 크기에 맞춤
 
 SPRITE_COLS = 8                    # 시트에서 가로(왼쪽 -> 오른쪽) 프레임 개수
 SPRITE_ROWS = 1                    # 시트에서 세로(위 -> 아래) 프레임 개수
@@ -36,8 +36,8 @@ IDLE_FRAME = 0                     # 멈춰 있을 때 보여줄 프레임 번�
 SCALE = 1.0                        # 화면에 그릴 크기 배율 (1.0 = 원본 크기)
 MARGIN = 0                         # 화면 가장자리에 남길 여백 (픽셀)
 
-FLOOR_Y = 40                       # 바닥 선 높이 (grass.png 가 없을 때만 사용)
-HUD_COLOR = (40, 40, 60)           # 안내 문구 색상
+FLOOR_Y = 40                       # 배경 이미지가 없을 때 쓰는 바닥 선 높이
+HUD_COLOR = (255, 255, 255)        # 안내 문구 색상
 
 
 # 방향키 + WASD 를 같이 받습니다
@@ -154,25 +154,29 @@ class Boy:
                                        self.draw_w, self.draw_h)
 
 
-def draw_scene(boy, font, grass):
+def draw_scene(boy, font, ground):
     """배경 -> 소년 -> 안내 문구 순서로 그립니다 (pico2d 는 나중에 그린 것이 위에 놓임)"""
-    pico2d.draw_rectangle(1, 1, CANVAS_W - 2, CANVAS_H - 2, 150, 150, 160, filled=False)
-    if grass is not None:
-        grass.draw(CANVAS_W / 2, 30)
+    if ground is not None:
+        # 배경은 캔버스 중앙에 그리면 크기(1280x1024)와 캔버스(1280x1024)가 같아 1:1 로 채워집니다
+        ground.draw(CANVAS_W / 2, CANVAS_H / 2, CANVAS_W, CANVAS_H)
     else:
         pico2d.draw_line(0, FLOOR_Y, CANVAS_W, FLOOR_Y, 130, 130, 140)
+    pico2d.draw_rectangle(1, 1, CANVAS_W - 2, CANVAS_H - 2, 150, 150, 160, filled=False)
 
     boy.draw()
 
     if font is not None:
-        font.draw(12, CANVAS_H - 24, '방향키로 이동   |   ESC 종료', HUD_COLOR)
+        # 배경 위에서 문구가 잘 보이도록 상단에 어두운 띠를 깔고 흰 글씨를 씁니다
+        pico2d.draw_rectangle(0, CANVAS_H - 72, CANVAS_W, CANVAS_H,
+                              30, 30, 40, 255, filled=True)
+        font.draw(12, CANVAS_H - 25, '방향키로 이동   |   ESC 종료', HUD_COLOR)
         facing = '오른쪽' if boy.facing_right else '왼쪽'
-        font.draw(12, CANVAS_H - 48,
+        font.draw(12, CANVAS_H - 49,
                   'x=%.0f  y=%.0f  바라보는 방향: %s' % (boy.x, boy.y, facing),
                   HUD_COLOR)
 
 
-def run_game(boy, font, grass, max_frames=None):
+def run_game(boy, font, ground, max_frames=None):
     """
     게임 루프. max_frames 를 주면 그 만큼만 돌고 끝납니다(자동 테스트용).
     """
@@ -207,7 +211,7 @@ def run_game(boy, font, grass, max_frames=None):
         # ---- 갱신 / 그리기 ----
         boy.update(dx, dy, dt)
         pico2d.clear_canvas()
-        draw_scene(boy, font, grass)
+        draw_scene(boy, font, ground)
         pico2d.update_canvas()
 
         frames += 1
@@ -235,21 +239,22 @@ def main():
             (frame_w * SPRITE_COLS != sheet_w or frame_h * SPRITE_ROWS != sheet_h):
         print('[warn] sheet size does not match SPRITE_COLS x SPRITE_ROWS. '
               'Adjust the values at the top of this file.')
+    print('[info] canvas: %dx%d, background: %s' % (CANVAS_W, CANVAS_H, GROUND_FILE))
     print('[info] arrow keys: move / ESC: quit')
 
     pico2d.open_canvas(CANVAS_W, CANVAS_H, sync=True)
     pico2d.hide_lattice()
     try:
         font = load_hud_font()
-        grass = None
-        grass_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), GRASS_FILE)
-        if os.path.exists(grass_path):
-            grass = pico2d.load_image(grass_path)
+        ground = None
+        ground_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), GROUND_FILE)
+        if os.path.exists(ground_path):
+            ground = pico2d.load_image(ground_path)
 
         boy = Boy(pico2d.load_image(sprite_path), frame_w, frame_h,
                   SPRITE_COLS, SPRITE_ROWS,
                   CANVAS_W / 2, FLOOR_Y + frame_h * SCALE / 2, SCALE)
-        run_game(boy, font, grass)
+        run_game(boy, font, ground)
     finally:
         pico2d.close_canvas()
 
