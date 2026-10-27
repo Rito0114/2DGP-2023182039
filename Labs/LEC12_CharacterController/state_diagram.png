@@ -1,0 +1,23 @@
+---
+State Machine
+---
+stateDiagram-v2
+  direction LR
+  classDef s_default fill:white,color:black
+  classDef s_inactive fill:white,color:black
+  classDef s_parallel color:black,fill:white
+  classDef s_active color:red,fill:darksalmon
+  classDef s_previous color:blue,fill:azure
+  
+  state "IDLE" as IDLE
+  Class IDLE s_active
+  state "RUN" as RUN
+  Class RUN s_default
+  state "SLEEP" as SLEEP
+  Class SLEEP s_default
+  
+  IDLE --> RUN: go_run
+  IDLE --> SLEEP: go_sleep
+  RUN --> IDLE: stop_run
+  SLEEP --> IDLE: wake_up
+  [*] --> IDLE
