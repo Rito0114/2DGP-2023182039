@@ -1,5 +1,9 @@
+import os
+
 from pico2d import open_canvas, close_canvas
 import game_framework
+
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import play_mode as start_mode
 
